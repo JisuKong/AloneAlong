@@ -13,11 +13,15 @@ b {color:#29A65F;}
 </style>
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script>
-function insertCart(stock, product, id){
+function insertCart(stock, productName, id){
 	const nowQuantity = $("#quantity").val();
-	if(nowQuantity > stock){
+	if(${empty userSession.user}){
+		alert("로그인이 필요합니다.");
+		location.href="/login";
+	}
+	else if(nowQuantity > stock){
 		$("#pStock").text(stock);
-		$("#pName").text(product);
+		$("#pName").text(productName);
 		jQuery.noConflict();
 		$("#stockModal").modal("show");
 	}
@@ -32,7 +36,7 @@ function insertCart(stock, product, id){
 				jQuery.noConflict();
 				$("#cartModal").modal("show");
 			},
-			error:function(){
+			error:function(request,status,error){
 				alert("오류가 발생했습니다.");
 			},
 		})
@@ -59,7 +63,7 @@ function insertCart(stock, product, id){
 			<div class="card-body">
 				<div class="d-flex justify-content-between align-items-start">
 					<h6 class="card-text text-left"><c:out value="${product.productName}"/></h6>
-					<a type="button" onclick="insertCart(${product.productStock}, '${product}', ${product.productId})"
+					<a type="button" onclick="insertCart(${product.productStock}, '${product.productName}', ${product.productId})"
 					   	class="btn btn-green btn-sm rounded-circle">
 						<i class="fas fa-shopping-cart"></i></a>
 				</div>

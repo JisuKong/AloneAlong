@@ -3,10 +3,13 @@ package com.dwu.alonealong.controller.restProduct;
 import com.dwu.alonealong.exception.NullProductException;
 import com.dwu.alonealong.exception.UserNotMatchException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.dwu.alonealong.domain.CartItem;
 import com.dwu.alonealong.service.AloneAlongFacade;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -21,23 +24,36 @@ public class RestCartController {
     }
 
     @GetMapping("/cart/{userId}/items")
-    public List<CartItem> ViewCartItemList(@PathVariable("userId") String userId){
-        return aloneAlong.getAllCartItem(userId);
+    public ResponseEntity<List<CartItem>> ViewCartItemList(@PathVariable("userId") String userId){
+        return ResponseEntity.ok(aloneAlong.getAllCartItem(userId));
     }
 
     @DeleteMapping("/cart/{userId}/items")
-    public void DeleteCartItemList(@PathVariable("userId") String userId){
-        aloneAlong.deleteAllCartItem(userId);
+    public ResponseEntity<Void> DeleteCartItemList(@PathVariable("userId") String userId){
+        try{
+            aloneAlong.deleteAllCartItem(userId);
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/cart/{userId}/items")
-    public void addCartItem(@RequestBody CartItem cartItem,
+    public ResponseEntity<Void> addCartItem(@RequestBody CartItem cartItem,
                                    @PathVariable("userId") String userId){
-        aloneAlong.insertCartItem(cartItem.getProductId(), cartItem.getQuantity(), userId);
+        if(userId.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "로그인이 필요합니다.");
+        }
+        try{
+            aloneAlong.insertCartItem(cartItem.getProductId(), cartItem.getQuantity(), userId);
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/cart/{userId}/items/{cartItemId}")
-    public void updateCartItem(@RequestBody CartItem cartItem,
+    public ResponseEntity<Void> updateCartItem(@RequestBody CartItem cartItem,
                             @PathVariable("userId") String userId,
                             @PathVariable("cartItemId") long cartItemId) throws Exception {
         CartItem nowCartItem = aloneAlong.getCartItem(cartItemId);
@@ -49,6 +65,7 @@ public class RestCartController {
         }
         nowCartItem.setQuantity(cartItem.getQuantity());
         aloneAlong.updateCartItem(nowCartItem);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/cart/{userId}/items/{cartItemId}")

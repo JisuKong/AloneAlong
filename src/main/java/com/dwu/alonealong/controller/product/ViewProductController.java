@@ -25,7 +25,7 @@ public class ViewProductController {
 		if(product == null) {
 			throw new NullProductException();
 		}
-		if(product.getProductStock() < quantity) {
+		if(product.getProductStock() > 0 && product.getProductStock() < quantity) {
 			throw new StockException();
 		}
 		product.setQuantity(quantity);

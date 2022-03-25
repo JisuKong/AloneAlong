@@ -4,9 +4,6 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script>
-$(document).ready(function (){
-
-})
 function changeQuantity(){
 	var nowQuantity = $("#quantity").val();
 	var totalPrice = ${product.productPrice} * nowQuantity;
@@ -18,7 +15,11 @@ function changeQuantity(){
 };
 function insertCart(){
 	const nowQuantity = $("#quantity").val();
-	if(nowQuantity > ${product.productStock}){
+	if(${empty userSession.user}){
+		alert("로그인이 필요합니다.");
+		location.href="/login";
+	}
+	else if(nowQuantity > ${product.productStock}){
 		$("#pStock").text('${product.productStock}');
 		$("#pName").text('${product.productName}');
 		jQuery.noConflict();
@@ -39,100 +40,128 @@ function insertCart(){
 				alert("오류가 발생했습니다.");
 			},
 		})
-		<%--location.href="/cart/insert/" + ${productId} + "/product?quantity=" + nowQuantity;--%>
 	}
 };
 function insertProductReviewRecommend(rId){
 	const reviewId = Number(rId);
-	let user = { user_id : ${userSession.user.user_id} };
-	$.ajax({
-		url:"/products/${productId}/reviews/" + reviewId + "/recommends",
-		type:"POST",
-		contentType:"application/json",
-		data:JSON.stringify(user),
-		success: function(){
-			alert("리뷰를 추천했습니다.");
-			location.reload();
-		},
-		error:function(){
-			jQuery.noConflict();
-			$("#recommendReviewModal").modal("show");
-		},
-	})
+	if(${empty userSession.user}){
+		alert("로그인이 필요합니다.");
+		location.href="/login";
+	}
+	else{
+		let user = { user_id : "${userSession.user.user_id}" };
+		$.ajax({
+			url:"/products/${productId}/reviews/" + reviewId + "/recommends",
+			type:"POST",
+			contentType:"application/json",
+			data:JSON.stringify(user),
+			success: function(){
+				alert("리뷰를 추천했습니다.");
+				location.reload();
+			},
+			error:function(){
+				jQuery.noConflict();
+				$("#recommendReviewModal").modal("show");
+			},
+		})
+	}
 }
 function deleteProductReviewRecommend(rId){
 	const reviewId = Number(rId);
-	$.ajax({
-		url:"/products/${productId}/reviews/" + reviewId + "/recommends/${userSession.user.user_id}",
-		type:"DELETE",
-		contentType:"application/json",
-		success: function(){
-			alert("추천을 취소했습니다.");
-			location.reload();
-		},
-		error:function(){
-			alert("오류가 발생했습니다.");
-		},
-	})
+	if(${empty userSession.user}){
+		alert("로그인이 필요합니다.");
+		location.href="/login";
+	}
+	else{
+		$.ajax({
+			url:"/products/${productId}/reviews/" + reviewId + "/recommends/${userSession.user.user_id}",
+			type:"DELETE",
+			contentType:"application/json",
+			success: function(){
+				alert("추천을 취소했습니다.");
+				location.reload();
+			},
+			error:function(){
+				alert("오류가 발생했습니다.");
+			},
+		})
+	}
 };
 function insertProductReview(){
 	const review = $("#insertForm").serializeArray();
-	let productReview = {
-		rating : review[0].value,
-		reviewContents : review[1].value,
-		productId : ${productId},
-		userId : ${userSession.user.user_id},
+	if(${empty userSession.user}){
+		alert("로그인이 필요합니다.");
+		location.href="/login";
 	}
-	$.ajax({
-		url:"/products/${productId}/reviews",
-		type:"POST",
-		contentType:"application/json",
-		data:JSON.stringify(productReview),
-		success: function(){
-			alert("리뷰가 작성되었습니다.");
-			location.reload();
-		},
-		error:function(){
-			alert("오류가 발생했습니다.");
-		},
-	})
+	else{
+		let productReview = {
+			rating : review[0].value,
+			reviewContents : review[1].value,
+			productId : ${productId},
+			userId : "${userSession.user.user_id}",
+		}
+		$.ajax({
+			url:"/products/${productId}/reviews",
+			type:"POST",
+			contentType:"application/json",
+			data:JSON.stringify(productReview),
+			success: function(){
+				alert("리뷰가 작성되었습니다.");
+				location.reload();
+			},
+			error:function(){
+				alert("오류가 발생했습니다.");
+			},
+		})
+	}
 };
 function updateProductReview(){
 	const review = $("#updateForm").serializeArray();
-	let productReview = {
-		rating : review[0].value,
-		reviewContents : review[1].value,
-		reviewId : review[3].value,
-		userId : ${userSession.user.user_id},
+	if(${empty userSession.user}){
+		alert("로그인이 필요합니다.");
+		location.href="/login";
 	}
-	$.ajax({
-		url:"/products/${productId}/reviews/" + review[3].value,
-		type:"PUT",
-		contentType:"application/json",
-		data:JSON.stringify(productReview),
-		success: function(){
-			alert("리뷰가 수정되었습니다.");
-			location.reload();
-		},
-		error:function(){
-			alert("오류가 발생했습니다.");
-		},
-	})
+	else{
+		let productReview = {
+			rating : review[0].value,
+			reviewContents : review[1].value,
+			reviewId : review[3].value,
+			userId : "${userSession.user.user_id}",
+		}
+		$.ajax({
+			url:"/products/${productId}/reviews/" + review[3].value,
+			type:"PUT",
+			contentType:"application/json",
+			data:JSON.stringify(productReview),
+			success: function(){
+				alert("리뷰가 수정되었습니다.");
+				location.reload();
+			},
+			error:function(){
+				alert("오류가 발생했습니다.");
+			},
+		})
+	}
 };
 function deleteProductReview(){
 	const reviewId = $(".modal-body #reviewId").val();
-	alert(reviewId)
-	$.ajax({
-		url:"/products/${productId}/reviews/" + reviewId + "/${userSession.user.user_id}",
-		type:"DELETE",
-		contentType:"application/json",
-		success: function(){
-			location.reload();
-		},
-		error:function(){
-			alert("오류가 발생했습니다.");
-		},
-	})
+	if(${empty userSession.user}){
+		alert("로그인이 필요합니다.");
+		location.href="/login";
+	}
+	else{
+		$.ajax({
+			url:"/products/${productId}/reviews/" + reviewId + "/${userSession.user.user_id}",
+			type:"DELETE",
+			contentType:"application/json",
+			success: function(){
+				location.reload();
+			},
+			error:function(){
+				alert("오류가 발생했습니다.");
+			},
+		})
+	}
 };
 </script>
 <div class="row mx-5 mb-5">
